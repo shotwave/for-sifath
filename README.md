@@ -104,7 +104,7 @@
         }
     </style>
 </head>
-<body class="relative text-gray-800 pb-20">
+<body class="relative text-gray-800 pb-20" onload="initAutoplay()">
 
     <div id="particle-container" class="fixed inset-0 pointer-events-none overflow-hidden z-0"></div>
 
@@ -115,11 +115,11 @@
         </button>
         <div class="text-xs pr-2">
             <p class="font-bold text-amber-800 font-heading leading-tight">Fool — Djo 🎵</p>
-            <p id="music-status" class="text-amber-600/80 font-semibold text-[10px]">Click to play background vibe</p>
+            <p id="music-status" class="text-amber-600/80 font-semibold text-[10px]">Autoplay ready</p>
         </div>
-        <!-- Audio element playing Djo - Fool -->
+        <!-- Clean MP3 Direct Source -->
         <audio id="bg-music" loop preload="auto">
-            <source src="https://ia801509.us.archive.org/24/items/djo-fool/Djo%20-%20Fool.mp3](https://youtu.be/OsdPfbHH15A" type="audio/mpeg">
+            <source src="https://ia801509.us.archive.org/24/items/djo-fool/Djo%20-%20Fool.mp3" type="audio/mpeg">
             Your browser does not support audio elements.
         </audio>
     </div>
@@ -372,8 +372,45 @@
             }
         }
 
-        /* 2. Audio Control for "Fool - Djo" */
+        /* 2. Audio Autoplay & Manual Controls */
         let isPlaying = false;
+
+        function startAudioPlayback() {
+            const music = document.getElementById('bg-music');
+            const btn = document.getElementById('music-toggle-btn');
+            const status = document.getElementById('music-status');
+
+            music.play().then(() => {
+                btn.innerText = '⏸';
+                status.innerText = 'Playing: Fool — Djo 🎵';
+                isPlaying = true;
+            }).catch(e => {
+                status.innerText = 'Click anywhere to play music';
+            });
+        }
+
+        function initAutoplay() {
+            createParticles();
+            const music = document.getElementById('bg-music');
+            
+            // Try starting sound automatically on page render
+            startAudioPlayback();
+
+            // Fallback: Listen for first interaction anywhere on page to trigger play
+            const handleFirstInteraction = () => {
+                if (!isPlaying) {
+                    startAudioPlayback();
+                }
+                document.removeEventListener('click', handleFirstInteraction);
+                document.removeEventListener('touchstart', handleFirstInteraction);
+                document.removeEventListener('keydown', handleFirstInteraction);
+            };
+
+            document.addEventListener('click', handleFirstInteraction);
+            document.addEventListener('touchstart', handleFirstInteraction);
+            document.addEventListener('keydown', handleFirstInteraction);
+        }
+
         function toggleMusic() {
             const music = document.getElementById('bg-music');
             const btn = document.getElementById('music-toggle-btn');
@@ -385,13 +422,7 @@
                 status.innerText = 'Click to play background vibe';
                 isPlaying = false;
             } else {
-                music.play().then(() => {
-                    btn.innerText = '⏸';
-                    status.innerText = 'Playing: Fool — Djo 🎵';
-                    isPlaying = true;
-                }).catch(e => {
-                    status.innerText = 'Tap again to allow audio playback';
-                });
+                startAudioPlayback();
             }
         }
 
@@ -423,7 +454,7 @@
 
         function checkStage1(answer) {
             if (answer === 'Rhapsody') {
-                setPuzzleFeedback('✨ Correct! We first met in the art studio! Stage 1 cleared.');
+                setPuzzleFeedback('✨ Correct! Stage 1 cleared.');
                 advanceStage(2, '25%');
             } else {
                 setPuzzleFeedback('❌ Nope! Try remembering our absolute first encounter!', true);
@@ -441,7 +472,7 @@
 
         function checkStage3(answer) {
             if (answer === 'To All the Boys I have loved before') {
-                setPuzzleFeedback('✨ Correct! To All The Boys I Have Loved Before! Stage 3 cleared.');
+                setPuzzleFeedback('✨ Correct! Stage 3 cleared.');
                 advanceStage(4, '75%');
             } else {
                 setPuzzleFeedback('❌ Wrong movie choice! Hint: It involves letters and high school romance.', true);
@@ -502,11 +533,9 @@
             dodgeCount++;
             hint.classList.remove('hidden');
 
-            // Make YES button grow larger each time
             const currentScale = 1 + (dodgeCount * 0.12);
             yesBtn.style.transform = `scale(${Math.min(currentScale, 1.6)})`;
 
-            // Make NO button shrink & jump position
             const shrinkScale = Math.max(0.85 - (dodgeCount * 0.08), 0.4);
             const randomX = (Math.random() - 0.5) * 240;
             const randomY = (Math.random() - 0.5) * 160;
@@ -522,7 +551,7 @@
                 if (!AudioCtx) return;
                 const ctx = new AudioCtx();
                 
-                const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                const notes = [523.25, 659.25, 783.99, 1046.50];
                 notes.forEach((freq, i) => {
                     const osc = ctx.createOscillator();
                     const gain = ctx.createGain();
@@ -547,7 +576,6 @@
         function handleYesClick() {
             playJoyfulTone();
 
-            // Trigger Confetti explosion
             if (window.confetti) {
                 confetti({
                     particleCount: 120,
@@ -572,37 +600,26 @@
                 }, 250);
             }
 
-            // Setup WhatsApp / SMS message link
-            const message = encodeURIComponent("I passed the escape room and I said YES! Yea yea khrayzzee! 🍍💛✨");
-            const textLink = document.getElementById('text-link');
-            textLink.href = `https://wa.me/?text=${message}`;
-
-            // Show Modal
             const modal = document.getElementById('success-modal');
-            const modalCard = document.getElementById('modal-card');
+            const card = document.getElementById('modal-card');
             modal.classList.remove('hidden');
             setTimeout(() => {
                 modal.classList.remove('opacity-0');
-                modalCard.classList.remove('scale-90');
-                modalCard.classList.add('scale-100');
-            }, 20);
+                card.classList.remove('scale-90');
+                card.classList.add('scale-100');
+            }, 50);
         }
 
         function closeModal() {
             const modal = document.getElementById('success-modal');
-            const modalCard = document.getElementById('modal-card');
+            const card = document.getElementById('modal-card');
             modal.classList.add('opacity-0');
-            modalCard.classList.remove('scale-100');
-            modalCard.classList.add('scale-90');
+            card.classList.remove('scale-100');
+            card.classList.add('scale-90');
             setTimeout(() => {
                 modal.classList.add('hidden');
             }, 300);
         }
-
-        // Initialize particles on load
-        window.onload = function() {
-            createParticles();
-        };
     </script>
 </body>
 </html>
