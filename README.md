@@ -119,7 +119,7 @@
         </div>
         <!-- Clean MP3 Direct Source -->
         <audio id="bg-music" loop preload="auto">
-            <source src="https://ia801509.us.archive.org/24/items/djo-fool/Djo%20-%20Fool.mp3" type="audio/mpeg">
+            <source src="/djo.mp3">
             Your browser does not support audio elements.
         </audio>
     </div>
