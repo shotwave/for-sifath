@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -104,7 +105,7 @@
         }
     </style>
 </head>
-<body class="relative text-gray-800 pb-20" onload="initAutoplay()">
+<body class="relative text-gray-800 pb-20">
 
     <div id="particle-container" class="fixed inset-0 pointer-events-none overflow-hidden z-0"></div>
 
@@ -115,13 +116,10 @@
         </button>
         <div class="text-xs pr-2">
             <p class="font-bold text-amber-800 font-heading leading-tight">Fool — Djo 🎵</p>
-            <p id="music-status" class="text-amber-600/80 font-semibold text-[10px]">Autoplay ready</p>
+            <p id="music-status" class="text-amber-600/80 font-semibold text-[10px]">Click anywhere to play</p>
         </div>
-        <!-- Clean MP3 Direct Source -->
-        <audio id="bg-music" loop preload="auto">
-            <source src="/djo.mp3">
-            Your browser does not support audio elements.
-        </audio>
+        <!-- INVISIBLE YOUTUBE AUDIO PLAYER CONTAINER -->
+        <div id="youtube-player" style="display:none;"></div>
     </div>
 
     <!-- MAIN CONTAINER -->
@@ -364,42 +362,41 @@
         </div>
     </div>
 
+    <!-- YOUTUBE IFRAME API SCRIPT -->
     <script>
-        /* 1. Global Card Flip Handler */
-        function flipCard(card) {
-            if (card) {
-                card.classList.toggle('card-flipped');
-            }
-        }
-
-        /* 2. Audio Autoplay & Manual Controls */
+        let player;
         let isPlaying = false;
 
-        function startAudioPlayback() {
-            const music = document.getElementById('bg-music');
-            const btn = document.getElementById('music-toggle-btn');
-            const status = document.getElementById('music-status');
+        // 1. Dynamically Load YouTube API
+        const tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-            music.play().then(() => {
-                btn.innerText = '⏸';
-                status.innerText = 'Playing: Fool — Djo 🎵';
-                isPlaying = true;
-            }).catch(e => {
-                status.innerText = 'Click anywhere to play music';
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('youtube-player', {
+                height: '0',
+                width: '0',
+                videoId: 'OsdPfbHH15A', // Djo - Fool
+                playerVars: {
+                    'autoplay': 1,
+                    'loop': 1,
+                    'playlist': 'OsdPfbHH15A'
+                },
+                events: {
+                    'onReady': onPlayerReady
+                }
             });
         }
 
-        function initAutoplay() {
-            createParticles();
-            const music = document.getElementById('bg-music');
-            
-            // Try starting sound automatically on page render
-            startAudioPlayback();
-
-            // Fallback: Listen for first interaction anywhere on page to trigger play
+        function onPlayerReady(event) {
+            // First interaction listener to unmute & trigger playback
             const handleFirstInteraction = () => {
-                if (!isPlaying) {
-                    startAudioPlayback();
+                if (player && player.playVideo) {
+                    player.playVideo();
+                    document.getElementById('music-toggle-btn').innerText = '⏸';
+                    document.getElementById('music-status').innerText = 'Playing: Fool — Djo 🎵';
+                    isPlaying = true;
                 }
                 document.removeEventListener('click', handleFirstInteraction);
                 document.removeEventListener('touchstart', handleFirstInteraction);
@@ -412,21 +409,32 @@
         }
 
         function toggleMusic() {
-            const music = document.getElementById('bg-music');
             const btn = document.getElementById('music-toggle-btn');
             const status = document.getElementById('music-status');
+            
+            if (!player) return;
 
             if (isPlaying) {
-                music.pause();
+                player.pauseVideo();
                 btn.innerText = '▶';
                 status.innerText = 'Click to play background vibe';
                 isPlaying = false;
             } else {
-                startAudioPlayback();
+                player.playVideo();
+                btn.innerText = '⏸';
+                status.innerText = 'Playing: Fool — Djo 🎵';
+                isPlaying = true;
             }
         }
 
-        /* 3. Floating Background Particles */
+        /* Card Flip Handler */
+        function flipCard(card) {
+            if (card) {
+                card.classList.toggle('card-flipped');
+            }
+        }
+
+        /* Floating Background Particles */
         function createParticles() {
             const container = document.getElementById('particle-container');
             const items = ['🍍', '🎸', '💛', '🧀', '🍿', '👑'];
@@ -442,8 +450,9 @@
                 container.appendChild(el);
             }
         }
+        window.addEventListener('DOMContentLoaded', createParticles);
 
-        /* 4. Memory Escape Room Logic */
+        /* Memory Escape Room Logic */
         let currentStage = 1;
 
         function setPuzzleFeedback(msg, isError = false) {
@@ -514,7 +523,7 @@
             currentStage = nextStage;
         }
 
-        /* 5. Evasive "NO" Button Handler */
+        /* Evasive "NO" Button Handler */
         let dodgeCount = 0;
         const noPhrases = [
             "Are you sure?",
@@ -544,7 +553,7 @@
             noBtn.innerText = noPhrases[Math.min(dodgeCount - 1, noPhrases.length - 1)];
         }
 
-        /* 6. Sound Chime using Web Audio API */
+        /* Web Audio Sound Effect */
         function playJoyfulTone() {
             try {
                 const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -568,11 +577,11 @@
                     osc.stop(ctx.currentTime + i * 0.12 + 0.45);
                 });
             } catch(e) {
-                console.log('Audio Context error ignored');
+                console.log('Audio Context unavailable');
             }
         }
 
-        /* 7. Celebratory Confetti and Modal Trigger */
+        /* Celebratory Confetti and Modal Trigger */
         function handleYesClick() {
             playJoyfulTone();
 
