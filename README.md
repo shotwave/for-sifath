@@ -138,7 +138,7 @@
             </h1>
             
             <p class="text-lg sm:text-xl text-amber-900/80 mt-3 max-w-xl mx-auto font-bold italic">
-                "I Have A Very Khrayzzee Questions For You, Will You *Officially* Be My Girlfriend??" 
+                "I Have A Very Khrayzzee Question For You, Will You *Officially* Be My Girlfriend??" 
             </p>
         </header>
 
